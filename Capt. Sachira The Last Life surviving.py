@@ -58,6 +58,7 @@ pygame.display.set_caption("Capt. Sachira: Last Life Remaining")
 # Set up the font
 font = pygame.font.Font(fnt, 40)
 font2 = pygame.font.Font(fnt, 80)
+font3 = pygame.font.Font(fnt, 20)
 
 # Load the player sprite
 player_image = pygame.image.load(plyr)
@@ -70,23 +71,25 @@ player_x = playerini_x
 player_y = playerini_y
 player_cruisespeed = 1
 player_speed = player_cruisespeed
-player_highspeed = 2
+player_highspeed = 1.5
 player_lowspeed = 0.5
 player_ini_rotation = 0
 player_rotation = player_ini_rotation
-rotation_speed = 0.7
+rotation_speed = 0.6
 score = 0         
 
 #setting up enemy
 enemy_sprite = pygame.image.load(enmy)
 # set the enemy's initial position and speed
 #enemy_pos = [random.randint(0, WINDOW_WIDTH - enemy_sprite.get_width()), random.randint(0, WINDOW_HEIGHT - enemy_sprite.get_height())]
-enemy_speed = 0.9
+enemy_speed = 0.5
 enemy_rotation = random.randint(0, 360)
 enemy_rotation_speed = 0.2
 enemies = []
 enrec = []
 burec = []
+NoOfEnemy = 1
+eKill = 0
 
 # Set up the bullets list
 bullets = []
@@ -119,6 +122,17 @@ gmovrscr = pygame.image.load(govr)
 gmovrscr_rect = gmovrscr.get_rect()
 lives = pygame.image.load(lvs).convert()
 #lives = lives.get_rect()
+greenColor = (0,255,0)
+redColor = (255,0,0)
+lghtredColor = (240, 128, 128)
+yellowColor = (255,255,0)
+OHColor = greenColor
+shtsfrd = 0
+shtsmul = 50
+shtscldwn = 0.6
+OHLimit = False
+OhBrWidth = 0
+
 
 showstartscreen1 = True
 showstartscreen2 = True
@@ -132,7 +146,7 @@ while showstartscreen1:
             showstartscreen2 = False
             game = False
         elif event.type == pygame.KEYDOWN:
-            if (event.key == pygame.K_RETURN) or (event.key == pygame.K_KP_ENTER):
+            if (event.key == pygame.K_RETURN) or (event.key == pygame.K_KP_ENTER) or (event.key == pygame.K_SPACE):
                 showstartscreen1 = False
     screen.fill((0, 0, 0)) 
     screen.blit(strscr1, strscr1_rect)
@@ -149,7 +163,7 @@ while showstartscreen2:
             showstartscreen2 = False
             game = False
         elif event.type == pygame.KEYDOWN:
-            if (event.key == pygame.K_RETURN) or (event.key == pygame.K_KP_ENTER):
+            if (event.key == pygame.K_RETURN) or (event.key == pygame.K_KP_ENTER) or (event.key == pygame.K_SPACE):
                 showstartscreen2 = False
     screen.fill((0, 0, 0)) 
     screen.blit(strscr2, strscr2_rect)
@@ -174,6 +188,7 @@ while game:
             elif event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_KP0) or (event.key == pygame.K_RSHIFT) or (event.key == pygame.K_LSHIFT):
                     player_speed = player_cruisespeed
+            '''
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 
             # Create a new bullet and add it to the list
@@ -183,7 +198,7 @@ while game:
                     })
                     #shsound.play()
                     # Decrement the projectile cooldown timer
-    
+                '''
 
 
 
@@ -208,7 +223,7 @@ while game:
             bullets.append(bullet_rect)
             projectile_timer = projectile_cooldown
         '''
-        if keys[pygame.K_SPACE] and projectile_timer <= 0:
+        if keys[pygame.K_SPACE] and projectile_timer <= 0 and OHLimit == False:
             # Create a new bullet and add it to the list
                     bullets.append({
                         "pos": [player_x, player_y],  # copy the player's current position
@@ -216,9 +231,28 @@ while game:
                     })
                     fire()
                     projectile_timer = projectile_cooldown
+                    shtsfrd = shtsfrd + shtsmul
                     # Decrement the projectile cooldown timer
         if projectile_timer > 0:
             projectile_timer -= 1
+        if shtsfrd > 0:
+            shtsfrd -= shtscldwn
+        if shtsfrd >800:
+            OHLimit = True
+            OHColor = redColor
+        if shtsfrd >600 and OHLimit==False:
+            OHColor = lghtredColor
+
+        if shtsfrd<600 and shtsfrd>300 and OHLimit==False:
+            OHColor = yellowColor
+        
+        if shtsfrd<300:
+            OHColor = greenColor
+            OHLimit = False
+        OhBrWidth = shtsfrd*0.25
+        
+
+            
 
         
         
@@ -258,7 +292,7 @@ while game:
 
         # Add enemies randomly
         #if len(enemies) < 1 and random.randint(0, 100) < 10:
-        if len(enemies) <1 and random.randint(0, 100 )<1:
+        if len(enemies) <NoOfEnemy and random.randint(0, 100 )<1:
             enemies.append({
                         "pos": random.choice([[random.choice([random.randint(-3, 0),random.randint(WINDOW_WIDTH , WINDOW_WIDTH + 3)]), random.randint(0,WINDOW_HEIGHT)],
                                                 [random.randint(0,WINDOW_HEIGHT), random.choice([random.randint(-3, 0),random.randint(WINDOW_HEIGHT , WINDOW_HEIGHT + 3)])]]),  # copy the player's current position
@@ -292,12 +326,20 @@ while game:
                     enemies.pop(enrec.index(enemy_rect))
                     enrec.remove(enemy_rect)
                     score = score + 10
+                    eKill = eKill + 1
                     explosion2()
                     #print(score)
 
 
                     #print("likill")
         #'''
+
+        #increasing No. of enemies
+        if eKill>19:
+            NoOfEnemy = NoOfEnemy + 1
+            eKill = 0
+
+
         for enemy_rect in enrec:
             if enemy_rect.colliderect(player_rect):
                 enemies.pop(enrec.index(enemy_rect))
@@ -315,8 +357,11 @@ while game:
         screen.blit(rotated_player_image, player_rect)  # Draw the player sprite
         # Draw score
         score_text = font.render("Score: " + str(score), True, (255, 255, 255))
+        GHText = font3.render("Gun OverHeat", True, (255, 255, 255))
         screen.blit(score_text, (WINDOW_WIDTH - score_text.get_width() - 10, 10))
         screen.blit(lives, (WINDOW_WIDTH - score_text.get_width() - 10, 80))
+        screen.blit(GHText, (25, 25))
+        pygame.draw.rect(screen, OHColor, pygame.Rect(25,25 + GHText.get_height() , OhBrWidth, 20))
         pygame.display.flip()  # Update the display
         #print(len(enrec))
     while gameover:
@@ -325,22 +370,27 @@ while game:
                 game = False
                 gameover=False
             elif event.type == pygame.KEYDOWN:
-                if (event.key == pygame.K_RETURN) or (event.key == pygame.K_KP_ENTER):
+                if (event.key == pygame.K_RETURN) or (event.key == pygame.K_KP_ENTER) or (event.key == pygame.K_SPACE):
                     gameover=False
                     running = True
                     score = 0
                     player_x = playerini_x
                     player_y = playerini_y
                     player_rotation = player_ini_rotation
+                    NoOfEnemy = 1
+                    player_speed = player_cruisespeed
                     enrec.clear()
                     enemies.clear()
                     burec.clear()
                     bullets.clear()
+                    shtsfrd = 0
                     
         screen.fill((0, 0, 0)) 
         screen.blit(gmovrscr, gmovrscr_rect)
         score_text = font2.render("Score: " + str(score), True, (255, 255, 255))
         screen.blit(score_text, ((WINDOW_WIDTH - score_text.get_width())/2 , WINDOW_HEIGHT/2))
+        creator = font3.render("Creators:- Atharva Sasane and Ruchira Purohit", True, (255, 255, 255))
+        screen.blit(creator, ((WINDOW_WIDTH - creator.get_width()-10) , WINDOW_HEIGHT-80))
         pygame.display.flip()
 pygame.quit()
   
