@@ -384,6 +384,7 @@ while game:
                     burec.clear()
                     bullets.clear()
                     shtsfrd = 0
+                    eKill = 0
                     
         screen.fill((0, 0, 0)) 
         screen.blit(gmovrscr, gmovrscr_rect)
