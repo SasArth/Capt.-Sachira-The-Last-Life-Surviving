@@ -150,7 +150,7 @@ gspeed = 0
 
 
 def chalfrnd(name,mail,score):
-    client = Courier(auth_token="pk_prod_NR6YFGHBHEMRP8HJ72119HARDKT2")
+    client = Courier(auth_token="pk_prod_N******BHEMR******119****KT2")
     resp = client.send_message(
     message={
           "to": {
