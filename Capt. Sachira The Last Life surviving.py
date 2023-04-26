@@ -3,6 +3,9 @@ import math
 import random
 import sys
 import os
+from trycourier import Courier
+from easygui import *
+
 
 #exe conv
 def resource_path(relative_path):
@@ -78,6 +81,7 @@ player_rotation = player_ini_rotation
 rotation_speed = 0.6
 score = 0         
 
+
 #setting up enemy
 enemy_sprite = pygame.image.load(enmy)
 # set the enemy's initial position and speed
@@ -133,6 +137,33 @@ shtscldwn = 0.6
 OHLimit = False
 OhBrWidth = 0
 
+#Explosion Setup
+
+
+text = "Your Name Captain"
+title = "Capt. Sachira"
+output= ""
+Pshared = False
+share = False
+
+gspeed = 0
+
+
+def chalfrnd(name,mail,score):
+    client = Courier(auth_token="pk_prod_NR6YFGHBHEMRP8HJ72119HARDKT2")
+    resp = client.send_message(
+    message={
+          "to": {
+            "email": mail
+          },
+          "content": {
+            "title": f'Challenge from {name}',
+            "body": f'Hey, Beat Me In Capt. Sachira. I scored: {score}'
+          },
+        }
+      )
+
+
 
 showstartscreen1 = True
 showstartscreen2 = True
@@ -151,7 +182,6 @@ while showstartscreen1:
     screen.fill((0, 0, 0)) 
     screen.blit(strscr1, strscr1_rect)
     pygame.display.flip()
-
 
 #showstartscreen2 = True
 while showstartscreen2:
@@ -187,42 +217,24 @@ while game:
                 gameover = False
             elif event.type == pygame.KEYDOWN:
                 if (event.key == pygame.K_KP0) or (event.key == pygame.K_RSHIFT) or (event.key == pygame.K_LSHIFT):
-                    player_speed = player_cruisespeed
-            '''
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                
-            # Create a new bullet and add it to the list
-                    bullets.append({
-                        "pos": [player_x, player_y],  # copy the player's current position
-                        "angle": player_rotation
-                    })
-                    #shsound.play()
-                    # Decrement the projectile cooldown timer
-                '''
-
+                    player_speed = player_cruisespeed + gspeed
 
 
         # Update the game state
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_a] :
             player_rotation += rotation_speed
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
             player_rotation -= rotation_speed
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_w]:
             player_speed *= 2
             if player_speed > player_highspeed:
-                player_speed = player_highspeed
-        if keys[pygame.K_DOWN]:
+                player_speed = player_highspeed + gspeed
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
             player_speed /= 2
             if player_speed<player_lowspeed:
-                player_speed = player_lowspeed
-        '''
-        if keys[pygame.K_SPACE] and projectile_timer <= 0:
-            bullet_rect = bullet_image.get_rect()
-            bullet_rect.midbottom = player_rect.midtop
-            bullets.append(bullet_rect)
-            projectile_timer = projectile_cooldown
-        '''
+                player_speed = player_lowspeed + gspeed
+    
         if keys[pygame.K_SPACE] and projectile_timer <= 0 and OHLimit == False:
             # Create a new bullet and add it to the list
                     bullets.append({
@@ -299,18 +311,11 @@ while game:
                         "angle": random.randint(0,360)
                     })
             
-            '''
-            enemy_rect = enemy_sprite.get_rect()
-            enemy_rect.x = random.randint(0, WINDOW_WIDTH - enemy_rect.width)
-            enemy_rect.y = random.randint(0, WINDOW_HEIGHT - enemy_rect.height)
-            enemies.append(enemy_rect)
-            print(enemies)
-            '''
 
         # Move the enemies and check for collisions with bullets
         enrec.clear()
         for enemy in enemies:
-            enemy_vel = pygame.math.Vector2(player_x - enemy["pos"][0], player_y - enemy["pos"][1]).normalize() * enemy_speed
+            enemy_vel = pygame.math.Vector2(player_x - enemy["pos"][0], player_y - enemy["pos"][1]).normalize() * (enemy_speed + gspeed)
             enemy["pos"][0] += enemy_vel.x
             enemy["pos"][1] += enemy_vel.y
             enemy_angle = math.degrees(math.atan2(enemy_vel.x, enemy_vel.y)) +180
@@ -327,12 +332,8 @@ while game:
                     enrec.remove(enemy_rect)
                     score = score + 10
                     eKill = eKill + 1
+                    gspeed += 0.01 
                     explosion2()
-                    #print(score)
-
-
-                    #print("likill")
-        #'''
 
         #increasing No. of enemies
         if eKill>19:
@@ -364,6 +365,11 @@ while game:
         pygame.draw.rect(screen, OHColor, pygame.Rect(25,25 + GHText.get_height() , OhBrWidth, 20))
         pygame.display.flip()  # Update the display
         #print(len(enrec))
+        
+        ###explode()
+
+
+
     while gameover:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -385,14 +391,29 @@ while game:
                     bullets.clear()
                     shtsfrd = 0
                     eKill = 0
+                    gspeed = 0
+                    share = False
+                if (event.key == pygame.K_s) and Pshared == False:
+                    output = multenterbox("", title, ["Your Name", "Email of friends"])
+                    share = True
+                    
                     
         screen.fill((0, 0, 0)) 
         screen.blit(gmovrscr, gmovrscr_rect)
         score_text = font2.render("Score: " + str(score), True, (255, 255, 255))
         screen.blit(score_text, ((WINDOW_WIDTH - score_text.get_width())/2 , WINDOW_HEIGHT/2))
-        creator = font3.render("Creators:- Atharva Sasane and Ruchira Purohit", True, (255, 255, 255))
+        creator = font3.render("Creator:- Atharva Sasane", True, (255, 255, 255))
+        score_Share = font.render("Press S to Share With Friends", True, (255, 255, 255))
         screen.blit(creator, ((WINDOW_WIDTH - creator.get_width()-10) , WINDOW_HEIGHT-80))
+        #screen.blit(score_Share, ((WINDOW_WIDTH - score_Share.get_width())/2 , (WINDOW_HEIGHT/2) + (score_text.get_height())))
+        screen.blit(score_Share, ((WINDOW_WIDTH - score_Share.get_width())/2 , 50))
         pygame.display.flip()
+        if share == True:
+            if output != None:
+                if output[0] != '' and output[1] != '':
+                    share = False
+                    Pshared = True
+                    chalfrnd(output[0],output[1],score)
 pygame.quit()
   
     
